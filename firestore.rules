@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128;
+    }
+
+    // Buyers validation helper
+    function isValidBuyer(data) {
+      return data.keys().hasAll(['buyerCode', 'buyerName', 'latitude', 'longitude']) &&
+        data.keys().size() == 4 &&
+        data.buyerCode is string && data.buyerCode.size() >= 2 && data.buyerCode.size() <= 64 &&
+        data.buyerName is string && data.buyerName.size() >= 2 && data.buyerName.size() <= 128 &&
+        data.latitude is number && data.latitude >= -90.0 && data.latitude <= 90.0 &&
+        data.longitude is number && data.longitude >= -180.0 && data.longitude <= 180.0;
+    }
+
+    // Drivers validation helper
+    function isValidDriver(data) {
+      return data.keys().hasAll(['driverId', 'driverName', 'maximumLoadKg', 'active']) &&
+        data.driverId is string && data.driverId.size() >= 2 && data.driverId.size() <= 64 &&
+        data.driverName is string && data.driverName.size() >= 2 && data.driverName.size() <= 128 &&
+        data.maximumLoadKg is number && data.maximumLoadKg > 0 && data.maximumLoadKg <= 100000 &&
+        data.active is bool;
+    }
+
+    // Settings validation helper
+    function isValidSettings(data) {
+      return data.keys().hasAll(['depotLatitude', 'depotLongitude']) &&
+        data.depotLatitude is number && data.depotLatitude >= -90.0 && data.depotLatitude <= 90.0 &&
+        data.depotLongitude is number && data.depotLongitude >= -180.0 && data.depotLongitude <= 180.0;
+    }
+
+    // 1. Buyers Collection
+    match /buyers/{buyerCode} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(buyerCode) && isValidBuyer(request.resource.data) && request.resource.data.buyerCode == buyerCode;
+      allow delete: if isSignedIn() && isValidId(buyerCode);
+    }
+
+    // 2. Drivers Collection
+    match /drivers/{driverId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(driverId) && isValidDriver(request.resource.data) && request.resource.data.driverId == driverId;
+      allow delete: if isSignedIn() && isValidId(driverId);
+    }
+
+    // 3. Settings Collection
+    match /settings/{settingId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(settingId) && isValidSettings(request.resource.data);
+      allow delete: if isSignedIn() && isValidId(settingId);
+    }
+
+    // 4. Users Collection
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow delete: if false;
+    }
+  }
+}

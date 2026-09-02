@@ -1,0 +1,140 @@
+{
+  "entities": {
+    "Buyer": {
+      "title": "Buyer",
+      "description": "Permanent customer record with verified delivery coordinates",
+      "type": "object",
+      "properties": {
+        "buyerCode": {
+          "type": "string",
+          "description": "Unique alphanumeric business code",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "buyerName": {
+          "type": "string",
+          "description": "Registered name of the buyer/customer",
+          "minLength": 2,
+          "maxLength": 128
+        },
+        "latitude": {
+          "type": "number",
+          "description": "WGS84 latitude coordinate"
+        },
+        "longitude": {
+          "type": "number",
+          "description": "WGS84 longitude coordinate"
+        }
+      },
+      "required": ["buyerCode", "buyerName", "latitude", "longitude"]
+    },
+    "Driver": {
+      "title": "Driver",
+      "description": "Registered delivery fleet driver",
+      "type": "object",
+      "properties": {
+        "driverId": {
+          "type": "string",
+          "description": "Unique identifier for the driver",
+          "minLength": 2,
+          "maxLength": 64
+        },
+        "driverName": {
+          "type": "string",
+          "description": "Full name of the driver",
+          "minLength": 2,
+          "maxLength": 128
+        },
+        "maximumLoadKg": {
+          "type": "number",
+          "description": "Nominal vehicle payload capacity in kilograms"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether driver is active for route optimization"
+        }
+      },
+      "required": ["driverId", "driverName", "maximumLoadKg", "active"]
+    },
+    "GlobalSettings": {
+      "title": "GlobalSettings",
+      "description": "Global operational settings including warehouse depot coordinates",
+      "type": "object",
+      "properties": {
+        "depotLatitude": {
+          "type": "number",
+          "description": "Depot warehouse WGS84 latitude"
+        },
+        "depotLongitude": {
+          "type": "number",
+          "description": "Depot warehouse WGS84 longitude"
+        },
+        "depotName": {
+          "type": "string",
+          "description": "Name of the central depot/warehouse",
+          "maxLength": 128
+        },
+        "distanceWeightPercent": {
+          "type": "number",
+          "description": "Weight of road distance minimization in optimization (0-100)"
+        },
+        "loadBalanceWeightPercent": {
+          "type": "number",
+          "description": "Weight of load balance in optimization (0-100)"
+        },
+        "capacityTolerancePercent": {
+          "type": "number",
+          "description": "Hard operational buffer percentage (default 10%)"
+        }
+      },
+      "required": ["depotLatitude", "depotLongitude"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Operational user profile",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth User UID"
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name"
+        },
+        "role": {
+          "type": "string",
+          "description": "User operational role (default: DISPATCHER)"
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Account active flag"
+        }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/buyers/{buyerCode}": {
+      "schema": "Buyer",
+      "description": "Permanent master customer directory"
+    },
+    "/drivers/{driverId}": {
+      "schema": "Driver",
+      "description": "Delivery driver and vehicle fleet registry"
+    },
+    "/settings/{settingId}": {
+      "schema": "GlobalSettings",
+      "description": "System-wide parameters and central depot location"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Authenticated dispatcher users"
+    }
+  }
+}

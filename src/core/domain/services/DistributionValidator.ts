@@ -55,6 +55,15 @@ export class DistributionInvariantValidator {
         });
       }
 
+      // Check Routing Status (no failed routing allowed in approved state)
+      if (route.routingStatus === 'ROUTING_UNAVAILABLE') {
+        violations.push({
+          invariant: 'ROUTING_STATUS_INTEGRITY',
+          message: `Route for driver '${route.driverId}' has failed routing (ROUTING_UNAVAILABLE). ${route.routingErrorMessage ?? ''}`,
+          details: { driverId: route.driverId }
+        });
+      }
+
       // Verify route calculated weight matches sum of stops
       const calculatedRouteWeight = route.orderedStops.reduce((sum, s) => sum + s.totalWeightKg, 0);
       const roundedCalc = Math.round(calculatedRouteWeight * 100) / 100;

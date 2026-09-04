@@ -74,15 +74,18 @@ export class OptimizationEvaluationService {
    * Evaluates the 70% Distance + 30% Load Balancing composite objective function.
    *
    * 1. Distance Component (70%):
-   *    normalizedDistance = totalDistance / referenceDistance
+   *    `referenceDistanceMeters` is the deterministic initial-solution baseline used to normalize
+   *    candidate distances during this optimization run:
+   *    normalizedDistance = totalDistanceMeters / referenceDistanceMeters
    *    (lower is better)
    *
    * 2. Load Balance Component (30%):
-   *    Evaluated across used active drivers based on utilization ratio against nominal capacity:
+   *    Evaluated across used active drivers based on relative capacity utilization:
    *    utilization_i = routeWeight_i / maximumLoadKg_i
-   *    disparity = max(utilization) - min(utilization) + variance(utilization)
-   *    normalized to [0, 1] range.
-   *    If 0 or 1 driver is used, disparity is 0.
+   *    loadDisparity = max(utilization) - min(utilization)
+   *    Strictly normalized to [0, 1] range via the 110% operational capacity ceiling:
+   *    normalizedLoadBalance = min(max(loadDisparity / 1.10, 0), 1.0)
+   *    (If 0 or 1 driver is used, disparity is 0).
    *
    * 3. Composite Objective:
    *    finalScore = (distanceWeight * normalizedDistance) + (loadBalanceWeight * normalizedLoadBalance)
@@ -123,16 +126,14 @@ export class OptimizationEvaluationService {
 
       const maxUtil = Math.max(...utilizations);
       const minUtil = Math.min(...utilizations);
-      const meanUtil = utilizations.reduce((sum, u) => sum + u, 0) / utilizations.length;
-      
-      const variance = utilizations.reduce((sum, u) => sum + Math.pow(u - meanUtil, 2), 0) / utilizations.length;
-      const stdDev = Math.sqrt(variance);
 
-      // Disparity combines range spread and standard deviation
-      loadDisparity = (maxUtil - minUtil) + stdDev;
+      // Disparity represents the peak utilization difference between drivers (0 to 1.10)
+      loadDisparity = maxUtil - minUtil;
 
-      // Bounded normalization: 0 means perfectly balanced, 1 means max plausible disparity (e.g. 1.10)
-      normalizedLoadBalance = Math.min(Math.max(loadDisparity / 1.10, 0), 2.0);
+      // Strict mathematical normalization to [0, 1] range:
+      // In the worst case (one driver at maximum 110% buffer, another at 0%), disparity is 1.10.
+      // Dividing by 1.10 maps the disparity to [0, 1] and clamping prevents any overflow.
+      normalizedLoadBalance = Math.min(Math.max(loadDisparity / 1.10, 0), 1.0);
     } else {
       normalizedLoadBalance = 0;
       loadDisparity = 0;

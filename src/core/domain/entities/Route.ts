@@ -1,5 +1,12 @@
 import { DeliveryStop, DeliveryStopProps } from './DeliveryStop';
 
+export interface RouteLegProps {
+  readonly originId: string;
+  readonly destinationId: string;
+  readonly distanceMeters: number;
+  readonly durationSeconds: number;
+}
+
 export interface RouteProps {
   readonly driverId: string;
   readonly orderedStops: readonly DeliveryStopProps[];
@@ -9,6 +16,9 @@ export interface RouteProps {
   readonly totalDurationSeconds: number;
   readonly polyline?: string;
   readonly isManuallyModified: boolean;
+  readonly routingStatus?: 'OK' | 'ROUTING_UNAVAILABLE' | 'CALCULATING';
+  readonly routingErrorMessage?: string;
+  readonly legs?: readonly RouteLegProps[];
 }
 
 export class Route {
@@ -20,6 +30,9 @@ export class Route {
   public readonly totalDurationSeconds: number;
   public readonly polyline?: string;
   public readonly isManuallyModified: boolean;
+  public readonly routingStatus: 'OK' | 'ROUTING_UNAVAILABLE' | 'CALCULATING';
+  public readonly routingErrorMessage?: string;
+  public readonly legs: readonly RouteLegProps[];
 
   constructor(props: {
     driverId: string;
@@ -30,6 +43,9 @@ export class Route {
     totalDurationSeconds: number;
     polyline?: string;
     isManuallyModified?: boolean;
+    routingStatus?: 'OK' | 'ROUTING_UNAVAILABLE' | 'CALCULATING';
+    routingErrorMessage?: string;
+    legs?: readonly RouteLegProps[];
   }) {
     this.driverId = props.driverId;
     this.orderedStops = Object.freeze([...props.orderedStops]);
@@ -39,6 +55,9 @@ export class Route {
     this.totalDurationSeconds = Math.round(props.totalDurationSeconds);
     this.polyline = props.polyline;
     this.isManuallyModified = Boolean(props.isManuallyModified);
+    this.routingStatus = props.routingStatus ?? 'OK';
+    this.routingErrorMessage = props.routingErrorMessage;
+    this.legs = Object.freeze(props.legs ? [...props.legs] : []);
   }
 
   public static create(props: RouteProps): Route {
@@ -51,7 +70,10 @@ export class Route {
       totalDistanceMeters: props.totalDistanceMeters,
       totalDurationSeconds: props.totalDurationSeconds,
       polyline: props.polyline,
-      isManuallyModified: props.isManuallyModified
+      isManuallyModified: props.isManuallyModified,
+      routingStatus: props.routingStatus,
+      routingErrorMessage: props.routingErrorMessage,
+      legs: props.legs
     });
   }
 
@@ -72,7 +94,10 @@ export class Route {
       totalDistanceMeters: this.totalDistanceMeters,
       totalDurationSeconds: this.totalDurationSeconds,
       polyline: this.polyline,
-      isManuallyModified: this.isManuallyModified
+      isManuallyModified: this.isManuallyModified,
+      routingStatus: this.routingStatus,
+      routingErrorMessage: this.routingErrorMessage,
+      legs: this.legs
     };
   }
 }

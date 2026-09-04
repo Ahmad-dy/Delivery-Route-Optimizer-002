@@ -31,6 +31,9 @@ export interface Messages {
     import: string;
     routing: string;
     optimization: string;
+    distribution: string;
+    history: string;
+    reports: string;
     buyers: string;
     drivers: string;
     settings: string;
@@ -257,6 +260,68 @@ export interface Messages {
     manualInterventionSuccess: string;
     capacityExceededError: string;
   };
+  distribution: {
+    title: string;
+    subtitle: string;
+    workspaceHeader: string;
+    tabWorkspace: string;
+    tabApprovedHistory: string;
+    operationalCapacityNotice: string;
+    driversCount: string;
+    stopsCount: string;
+    listsCount: string;
+    totalPayload: string;
+    totalDistance: string;
+    totalDuration: string;
+    objectiveScore: string;
+    recalculateAll: string;
+    recalculatingRoutes: string;
+    approveDistribution: string;
+    approvingDistribution: string;
+    undo: string;
+    moveStop: string;
+    reorderStops: string;
+    targetDriver: string;
+    selectTargetDriver: string;
+    unassignedTarget: string;
+    sourceDriver: string;
+    nominalCap: string;
+    maxCap110: string;
+    utilization: string;
+    oversizedBadge: string;
+    buyerLists: string;
+    listNum: string;
+    stopSequence: string;
+    fromDepot: string;
+    toDepot: string;
+    depotHub: string;
+    moveStopModalTitle: string;
+    moveStopConfirm: string;
+    reorderStopModalTitle: string;
+    moveUp: string;
+    moveDown: string;
+    confirmApprovalTitle: string;
+    confirmApprovalMessage: string;
+    approvalSuccess: string;
+    unassignedStopsTitle: string;
+    unassignedStopsSubtitle: string;
+    reasonOversized: string;
+    reasonNoDriver: string;
+    reasonRoutingUnavailable: string;
+    routingFailedBanner: string;
+    routingOk: string;
+    approvedBadge: string;
+    revisionNumber: string;
+    approvedAt: string;
+    approvedBy: string;
+    noApprovedHistory: string;
+    noApprovedHistorySub: string;
+    scoreDegradedWarning: string;
+    scoreImprovedNotice: string;
+    mapTitle: string;
+    mapSubtitle: string;
+    viewOnMap: string;
+  };
   validation: {
     buyerCodeRequired: string;
     buyerCodeTooLong: string;
@@ -307,6 +372,10 @@ export interface Messages {
     missingBuyerCode: string;
     invalidWeight: string;
     firebaseUnavailable: string;
+    exportFailed: string;
+    reportQueryFailed: string;
+    auditWriteFailed: string;
+    invalidSnapshot: string;
   };
   warnings: {
     unassignedStops: string;
@@ -347,6 +416,9 @@ export const ARABIC_MESSAGES: Messages = {
     import: 'استيراد القوائم (Excel)',
     routing: 'مصفوفة المسارات (Google Routes)',
     optimization: 'توزيع وتحسين المسارات (Stage 5)',
+    distribution: 'إدارة وتوزيع المسارات (Stage 6)',
+    history: 'سجل التوزيعات المعتمدة (History)',
+    reports: 'التقارير ولوحة المؤشرات (Reports)',
     buyers: 'سجل الزبائن (المحلات)',
     drivers: 'أسطول السائقين والمركبات',
     settings: 'إعدادات المستودع المركزي',
@@ -573,6 +645,68 @@ export const ARABIC_MESSAGES: Messages = {
     manualInterventionSuccess: 'تم تعديل إسناد النقطة وإعادة احتساب مسافات ومسارات السائقين بنجاح.',
     capacityExceededError: 'فشل التعديل اليدوي: الحمولة تتجاوز الحد الأقصى التشغيلي للسائق المحدد (110%).'
   },
+  distribution: {
+    title: 'مساحة عمل توزيع الشحنات والاعتماد النهائي (Stage 6)',
+    subtitle: 'إدارة وتدقيق مسارات التوصيل الفعلية، التعديل اليدوي المرن للمحطات، واعتماد وتوثيق التوزيع النهائي',
+    workspaceHeader: 'لوحة إدارة التوزيع الجاري',
+    tabWorkspace: 'مساحة العمل والتعديل',
+    tabApprovedHistory: 'سجل التوزيعات المعتمدة (Firestore)',
+    operationalCapacityNotice: 'السعة التشغيلية = 110% من الحمولة الاسمية للمركبة (حد أقصى غير قابل للتجاوز).',
+    driversCount: 'السائقون المستخدمون',
+    stopsCount: 'إجمالي المحطات الموزعة',
+    listsCount: 'إجمالي القوائم المشحونة',
+    totalPayload: 'إجمالي الحمولة الكلية',
+    totalDistance: 'إجمالي المسافة الطرقية الفعالة',
+    totalDuration: 'إجمالي زمن القيادة الفعلي',
+    objectiveScore: 'درجة جودة التوزيع (70/30)',
+    recalculateAll: 'إعادة حساب المسارات الطرقية (Google)',
+    recalculatingRoutes: 'جاري حساب المسارات الفعلية عبر Google Routes...',
+    approveDistribution: 'اعتماد التوزيع النهائي',
+    approvingDistribution: 'جاري التحقق والاعتماد وحفظ السجل...',
+    undo: 'تراجع عن التعديل',
+    moveStop: 'نقل المحطة لسائق آخر',
+    reorderStops: 'إعادة ترتيب التسلسل',
+    targetDriver: 'السائق المستهدف',
+    selectTargetDriver: 'اختر السائق المستهدف للنقل...',
+    unassignedTarget: 'قائمة المحطات غير الموزعة (Unassigned)',
+    sourceDriver: 'السائق الحالي',
+    nominalCap: 'الحمولة الاسمية',
+    maxCap110: 'الحد الأقصى (110%)',
+    utilization: 'نسبة الاستغلال',
+    oversizedBadge: 'حمولة حرجة',
+    buyerLists: 'القوائم المدمجة التابعة للزبون',
+    listNum: 'قائمة #',
+    stopSequence: 'تسلسل المحطات',
+    fromDepot: 'المستودع المركزي (نقطة الانطلاق)',
+    toDepot: 'المستودع المركزي (نقطة العودة)',
+    depotHub: 'المستودع المركزي',
+    moveStopModalTitle: 'نقل محطة التوصيل إلى سائق آخر',
+    moveStopConfirm: 'تأكيد نقل المحطة',
+    reorderStopModalTitle: 'إعادة ترتيب تسلسل محطات المسار',
+    moveUp: 'تقديم للأعلى',
+    moveDown: 'تأخير للأسفل',
+    confirmApprovalTitle: 'تأكيد اعتماد التوزيع النهائي',
+    confirmApprovalMessage: 'هل أنت متأكد من اعتماد هذا التوزيع النهائي؟ سيتم توثيق نسخة غير قابلة للتعديل وحفظها بشكل دائم في قاعدة البيانات.',
+    approvalSuccess: 'تم اعتماد التوزيع النهائي وحفظه بنجاح في قاعدة البيانات.',
+    unassignedStopsTitle: 'المحطات غير الموزعة',
+    unassignedStopsSubtitle: 'المحطات المعلقة التي لم تتمكن السعات التشغيلية المتاحة من استيعابها',
+    reasonOversized: 'الوزن يتجاوز الحد الأقصى لأي شاحنة في الأسطول',
+    reasonNoDriver: 'لا توجد سعة تشغيلية كافية لدى السائقين النشطين',
+    reasonRoutingUnavailable: 'تعذر حساب المسار الطرقي للمحطة',
+    routingFailedBanner: 'تنبيه: تعذر حساب المسار الطرقي الفعلي لبعض السائقين (ROUTING_UNAVAILABLE).',
+    routingOk: 'مسار طرقي فعلي معتمد (Google Routes)',
+    approvedBadge: 'توزيع معتمد',
+    revisionNumber: 'رقم النسخة',
+    approvedAt: 'تاريخ الاعتماد',
+    approvedBy: 'تم الاعتماد بواسطة',
+    noApprovedHistory: 'لا توجد توزيعات معتمدة محفوظة بعد.',
+    noApprovedHistorySub: 'عند اعتماد التوزيع النهائي لأول مرة، سيظهر السجل الدائم هنا مع جميع التفاصيل.',
+    scoreDegradedWarning: 'تنبيه: هذا التعديل أدى إلى زيادة المسافة أو تقليل توازن الأحمال.',
+    scoreImprovedNotice: 'تم التعديل وتحسين المسافة الإجمالية.',
+    mapTitle: 'خريطة المسارات الطرقية الشاملة للأسطول',
+    mapSubtitle: 'عرض جميع مسارات السائقين بنظام التشفير اللوني ونقاط التوقف المرقمة وموقع المستودع',
+    viewOnMap: 'معاينة المسار على الخريطة'
+  },
   validation: {
     buyerCodeRequired: 'رمز الزبون مطلوب ويجب أن يحتوي على حرفين على الأقل.',
     buyerCodeTooLong: 'رمز الزبون لا يمكن أن يتجاوز 64 حرفاً.',
@@ -622,7 +756,11 @@ export const ARABIC_MESSAGES: Messages = {
     missingListNumber: 'رقم القائمة مفقود أو فارغ في الصف.',
     missingBuyerCode: 'كود المشتري مفقود أو فارغ في الصف.',
     invalidWeight: 'الوزن غير صالح في الصف. يجب أن يكون رقماً موجباً أكبر من صفر.',
-    firebaseUnavailable: 'تعذر الاتصال بقاعدة بيانات Firebase للتحقق من المشترين.'
+    firebaseUnavailable: 'تعذر الاتصال بقاعدة بيانات Firebase للتحقق من المشترين.',
+    exportFailed: 'فشل في تصدير ملف التوزيع.',
+    reportQueryFailed: 'فشل في استعلام وتجميع بيانات التقارير التشغيلية.',
+    auditWriteFailed: 'فشل في تسجيل عملية التدقيق الأمني.',
+    invalidSnapshot: 'لقطة التوزيع المعتمدة غير صالحة أو تالفة.'
   },
   warnings: {
     unassignedStops: 'توجد نقاط توصيل لم تتمكن سعة الأسطول المتاحة من استيعابها.',
@@ -663,6 +801,9 @@ export const ENGLISH_MESSAGES: Messages = {
     import: 'Import Lists (Excel)',
     routing: 'Road Matrix (Routes API)',
     optimization: 'Optimization & Routes (Stage 5)',
+    distribution: 'Distribution & Dispatch (Stage 6)',
+    history: 'Approved History',
+    reports: 'Operational Reports',
     buyers: 'Buyers Registry',
     drivers: 'Driver Fleet',
     settings: 'Depot & Settings',
@@ -889,6 +1030,68 @@ export const ENGLISH_MESSAGES: Messages = {
     manualInterventionSuccess: 'Stop reassigned and driver route metrics recalculated successfully.',
     capacityExceededError: 'Reassignment failed: Payload exceeds the 110% operational capacity of the target driver.'
   },
+  distribution: {
+    title: 'Distribution Workspace & Approval Engine (Stage 6)',
+    subtitle: 'Review driver road routes, perform manual stop reassignments and sequence adjustments, and approve finalized distribution snapshots',
+    workspaceHeader: 'Current Operational Distribution Session',
+    tabWorkspace: 'Active Workspace & Editing',
+    tabApprovedHistory: 'Approved Distributions History (Firestore)',
+    operationalCapacityNotice: 'Operational Capacity = 110% of vehicle nominal capacity (strict operational hard limit).',
+    driversCount: 'Active Fleet Drivers',
+    stopsCount: 'Total Assigned Stops',
+    listsCount: 'Total Delivered Lists',
+    totalPayload: 'Total Fleet Payload',
+    totalDistance: 'Total Actual Road Distance',
+    totalDuration: 'Total Actual Driving Duration',
+    objectiveScore: 'Composite Objective Score (70/30)',
+    recalculateAll: 'Recalculate All Routes (Google)',
+    recalculatingRoutes: 'Calculating actual Google Routes API driving paths...',
+    approveDistribution: 'Approve Final Distribution',
+    approvingDistribution: 'Validating invariants and archiving approved snapshot...',
+    undo: 'Undo Last Action',
+    moveStop: 'Reassign Stop to Driver',
+    reorderStops: 'Reorder Stops Sequence',
+    targetDriver: 'Target Driver',
+    selectTargetDriver: 'Select target driver to receive stop...',
+    unassignedTarget: 'Unassigned Stops Pool',
+    sourceDriver: 'Current Driver',
+    nominalCap: 'Nominal Capacity',
+    maxCap110: 'Max Allowed (110%)',
+    utilization: 'Truck Utilization',
+    oversizedBadge: 'Critical Payload',
+    buyerLists: 'Merged Lists for Buyer',
+    listNum: 'List #',
+    stopSequence: 'Stop Delivery Sequence',
+    fromDepot: 'Central Depot (Departure)',
+    toDepot: 'Central Depot (Return)',
+    depotHub: 'Central Depot Hub',
+    moveStopModalTitle: 'Reassign Delivery Stop to Another Driver',
+    moveStopConfirm: 'Confirm Stop Reassignment',
+    reorderStopModalTitle: 'Reorder Driver Stops Sequence',
+    moveUp: 'Move Up',
+    moveDown: 'Move Down',
+    confirmApprovalTitle: 'Confirm Final Distribution Approval',
+    confirmApprovalMessage: 'Are you sure you want to approve this final distribution? An immutable snapshot will be created and permanently saved to Cloud Firestore.',
+    approvalSuccess: 'Final distribution successfully approved and recorded in Cloud Firestore.',
+    unassignedStopsTitle: 'Unassigned Delivery Stops',
+    unassignedStopsSubtitle: 'Stops that could not be assigned within operational vehicle capacities',
+    reasonOversized: 'Payload exceeds maximum capacity of any available fleet vehicle',
+    reasonNoDriver: 'Insufficient operational capacity remaining across active fleet',
+    reasonRoutingUnavailable: 'Road routing could not be determined for this stop',
+    routingFailedBanner: 'Alert: Actual road driving route could not be calculated for some drivers (ROUTING_UNAVAILABLE).',
+    routingOk: 'Road route verified with Google Routes API',
+    approvedBadge: 'Approved Distribution',
+    revisionNumber: 'Revision #',
+    approvedAt: 'Approved At',
+    approvedBy: 'Approved By',
+    noApprovedHistory: 'No approved distributions found.',
+    noApprovedHistorySub: 'When you approve your first distribution, its permanent snapshot will appear here.',
+    scoreDegradedWarning: 'Notice: This modification increased total distance or decreased load fairness.',
+    scoreImprovedNotice: 'Route sequence updated and total distance improved.',
+    mapTitle: 'Comprehensive Fleet Road Routes Map',
+    mapSubtitle: 'Interactive visualization of color-coded driver routes, numbered stops, and central depot',
+    viewOnMap: 'View Route on Map'
+  },
   validation: {
     buyerCodeRequired: 'Buyer Code is required and must have at least 2 characters.',
     buyerCodeTooLong: 'Buyer Code cannot exceed 64 characters.',
@@ -938,7 +1141,11 @@ export const ENGLISH_MESSAGES: Messages = {
     missingListNumber: 'List Number is missing or empty in row.',
     missingBuyerCode: 'Buyer Code is missing or empty in row.',
     invalidWeight: 'Invalid weight value in row. Must be a positive number greater than 0.',
-    firebaseUnavailable: 'Could not connect to Firebase database to verify buyers.'
+    firebaseUnavailable: 'Could not connect to Firebase database to verify buyers.',
+    exportFailed: 'Failed to export distribution file.',
+    reportQueryFailed: 'Failed to query operational reporting data.',
+    auditWriteFailed: 'Failed to record audit trail event.',
+    invalidSnapshot: 'Approved distribution snapshot is invalid or corrupted.'
   },
   warnings: {
     unassignedStops: 'Some delivery stops could not be accommodated within available fleet capacity.',

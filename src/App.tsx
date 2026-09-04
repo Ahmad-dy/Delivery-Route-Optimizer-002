@@ -9,10 +9,14 @@ import { DashboardView } from './presentation/views/DashboardView';
 import { ImportView } from './presentation/views/ImportView';
 import { RoutingView } from './presentation/views/RoutingView';
 import { OptimizationView } from './presentation/views/OptimizationView';
+import { DistributionView } from './presentation/views/DistributionView';
 import { BuyersView } from './presentation/views/BuyersView';
 import { DriversView } from './presentation/views/DriversView';
 import { SettingsView } from './presentation/views/SettingsView';
 import { LoginView } from './presentation/views/LoginView';
+import { DistributionHistoryView } from './presentation/views/DistributionHistoryView';
+import { DistributionHistoryDetailsView } from './presentation/views/DistributionHistoryDetailsView';
+import { ReportsDashboardView } from './presentation/views/ReportsDashboardView';
 
 export default function App() {
   const { user, status, initialize, signOut } = useAuthStore();
@@ -22,6 +26,14 @@ export default function App() {
   const { locale, toggleLocale, messages, isRtl } = useLocalization();
 
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
+  const [selectedHistoryDistributionId, setSelectedHistoryDistributionId] = useState<string | null>(null);
+
+  const handleTabChange = (tab: NavTab) => {
+    setActiveTab(tab);
+    if (tab !== 'history') {
+      setSelectedHistoryDistributionId(null);
+    }
+  };
 
   // Initialize auth listener
   useEffect(() => {
@@ -52,7 +64,7 @@ export default function App() {
     <div className="min-h-screen bg-slate-100 text-slate-900 font-sans selection:bg-blue-500 selection:text-white flex flex-col">
       <Navbar
         activeTab={activeTab}
-        onSelectTab={setActiveTab}
+        onSelectTab={handleTabChange}
         user={user}
         onSignOut={signOut}
         locale={locale}
@@ -62,20 +74,51 @@ export default function App() {
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'dashboard' && (
-          <DashboardView messages={messages} onNavigate={setActiveTab} />
+          <DashboardView messages={messages} onNavigate={handleTabChange} />
         )}
         {activeTab === 'import' && <ImportView messages={messages} />}
         {activeTab === 'routing' && (
           <RoutingView
             messages={messages}
-            onNavigateToImport={() => setActiveTab('import')}
+            onNavigateToImport={() => handleTabChange('import')}
           />
         )}
         {activeTab === 'optimization' && (
           <OptimizationView
             messages={messages}
-            onNavigateToImport={() => setActiveTab('import')}
-            onNavigateToRouting={() => setActiveTab('routing')}
+            onNavigateToImport={() => handleTabChange('import')}
+            onNavigateToRouting={() => handleTabChange('routing')}
+            onNavigateToDistribution={() => handleTabChange('distribution')}
+          />
+        )}
+        {activeTab === 'distribution' && (
+          <DistributionView
+            messages={messages}
+            onNavigateToOptimization={() => handleTabChange('optimization')}
+            onNavigateToImport={() => handleTabChange('import')}
+            onNavigateToRouting={() => handleTabChange('routing')}
+          />
+        )}
+        {activeTab === 'history' && (
+          selectedHistoryDistributionId ? (
+            <DistributionHistoryDetailsView
+              distributionId={selectedHistoryDistributionId}
+              onBack={() => setSelectedHistoryDistributionId(null)}
+              messages={messages}
+            />
+          ) : (
+            <DistributionHistoryView
+              onSelectDistribution={(id) => setSelectedHistoryDistributionId(id)}
+            />
+          )
+        )}
+        {activeTab === 'reports' && (
+          <ReportsDashboardView
+            messages={messages}
+            onNavigateToHistory={() => {
+              setSelectedHistoryDistributionId(null);
+              handleTabChange('history');
+            }}
           />
         )}
         {activeTab === 'buyers' && <BuyersView messages={messages} />}
@@ -86,7 +129,7 @@ export default function App() {
       <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>{messages.common.appName} &copy; 2026</span>
-          <span className="text-slate-400 font-mono">Stage 5 — Multi-Driver Route Optimization Engine</span>
+          <span className="text-slate-400 font-mono">Stage 7 — Reporting, Exporting, History & Audit Engine</span>
         </div>
       </footer>
     </div>

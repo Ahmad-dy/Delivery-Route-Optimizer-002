@@ -10,6 +10,13 @@ export class CapacityDomainService {
   }
 
   /**
+   * Calculates the 110% operational ceiling for a nominal capacity
+   */
+  public static calculateOperationalLimit(nominalCapacityKg: number): number {
+    return Capacity.calculateMaximumAllowed(nominalCapacityKg);
+  }
+
+  /**
    * Evaluates if a driver can accommodate a given total cargo weight
    */
   public static canAssignWeight(driver: Driver, weightKg: number): boolean {

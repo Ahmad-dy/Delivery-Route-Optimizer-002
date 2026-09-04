@@ -50,12 +50,33 @@ import { GenerateRouteMatrixUseCase } from '../use-cases/routing/GenerateRouteMa
 import { CalculateRouteMetricsUseCase } from '../use-cases/routing/CalculateRouteMetricsUseCase';
 import { OptimizeDistributionUseCase } from '../use-cases/optimization/OptimizeDistributionUseCase';
 import { ReassignStopUseCase } from '../use-cases/optimization/ReassignStopUseCase';
+import { DistributionRepository } from '../ports/DistributionRepository';
+import { FirestoreDistributionRepository } from '../../infrastructure/repositories/FirestoreDistributionRepository';
+import { CalculateFinalRoutesUseCase } from '../use-cases/distribution/CalculateFinalRoutesUseCase';
+import { ManualReassignStopUseCase } from '../use-cases/distribution/ManualReassignStopUseCase';
+import { ManualReorderStopsUseCase } from '../use-cases/distribution/ManualReorderStopsUseCase';
+import { ApproveDistributionUseCase } from '../use-cases/distribution/ApproveDistributionUseCase';
+
+// Stage 7: Reporting, History, Export & Audit
+import { IDistributionHistoryRepository } from '../ports/IDistributionHistoryRepository';
+import { IAuditRepository } from '../ports/IAuditRepository';
+import { FirestoreAuditRepository } from '../../infrastructure/repositories/FirestoreAuditRepository';
+import { GetDistributionHistoryUseCase } from '../use-cases/reporting/GetDistributionHistoryUseCase';
+import { GetDistributionDetailsUseCase } from '../use-cases/reporting/GetDistributionDetailsUseCase';
+import { GetDriverPerformanceUseCase } from '../use-cases/reporting/GetDriverPerformanceUseCase';
+import { GetOperationalReportsUseCase } from '../use-cases/reporting/GetOperationalReportsUseCase';
+import { CompareDistributionsUseCase } from '../use-cases/reporting/CompareDistributionsUseCase';
+import { ExportDistributionToExcelUseCase } from '../use-cases/export/ExportDistributionToExcelUseCase';
+import { ExportDistributionToPdfUseCase } from '../use-cases/export/ExportDistributionToPdfUseCase';
+import { GetAuditHistoryUseCase } from '../use-cases/audit/GetAuditHistoryUseCase';
+import { LogAuditEventUseCase } from '../use-cases/audit/LogAuditEventUseCase';
 
 export interface AppContainer {
   readonly buyerRepo: BuyerRepository;
   readonly driverRepo: DriverRepository;
   readonly settingsRepo: SettingsRepository;
   readonly authRepo: AuthRepository;
+  readonly distributionRepo: DistributionRepository;
   readonly routingService: IRoutingService;
   readonly googleRoutingService: GoogleRoutingService;
   readonly mockRoutingAdapter: MockRoutingAdapter;
@@ -97,6 +118,25 @@ export interface AppContainer {
   // Optimization Use Cases (Stage 5)
   readonly optimizeDistributionUseCase: OptimizeDistributionUseCase;
   readonly reassignStopUseCase: ReassignStopUseCase;
+
+  // Distribution & Dispatch Use Cases (Stage 6)
+  readonly calculateFinalRoutesUseCase: CalculateFinalRoutesUseCase;
+  readonly manualReassignStopUseCase: ManualReassignStopUseCase;
+  readonly manualReorderStopsUseCase: ManualReorderStopsUseCase;
+  readonly approveDistributionUseCase: ApproveDistributionUseCase;
+
+  // Stage 7: Reporting, History, Export & Audit
+  readonly historyRepo: IDistributionHistoryRepository;
+  readonly auditRepo: IAuditRepository;
+  readonly getDistributionHistoryUseCase: GetDistributionHistoryUseCase;
+  readonly getDistributionDetailsUseCase: GetDistributionDetailsUseCase;
+  readonly getDriverPerformanceUseCase: GetDriverPerformanceUseCase;
+  readonly getOperationalReportsUseCase: GetOperationalReportsUseCase;
+  readonly compareDistributionsUseCase: CompareDistributionsUseCase;
+  readonly exportDistributionToExcelUseCase: ExportDistributionToExcelUseCase;
+  readonly exportDistributionToPdfUseCase: ExportDistributionToPdfUseCase;
+  readonly getAuditHistoryUseCase: GetAuditHistoryUseCase;
+  readonly logAuditEventUseCase: LogAuditEventUseCase;
 }
 
 export function createProductionContainer(): AppContainer {
@@ -104,6 +144,9 @@ export function createProductionContainer(): AppContainer {
   const driverRepo = new FirestoreDriverRepository();
   const settingsRepo = new FirestoreSettingsRepository();
   const authRepo = new FirebaseAuthRepository();
+  const distributionRepo = new FirestoreDistributionRepository();
+  const historyRepo: IDistributionHistoryRepository = distributionRepo;
+  const auditRepo: IAuditRepository = new FirestoreAuditRepository();
 
   const googleApiKey =
     (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_MAPS_API_KEY) ||
@@ -128,11 +171,18 @@ export function createProductionContainer(): AppContainer {
   const optimizeDistributionUseCase = new OptimizeDistributionUseCase(optimizationService, routingService);
   const reassignStopUseCase = new ReassignStopUseCase();
 
+  // Stage 6 Use Cases
+  const calculateFinalRoutesUseCase = new CalculateFinalRoutesUseCase(routingService);
+  const manualReassignStopUseCase = new ManualReassignStopUseCase(routingService, calculateFinalRoutesUseCase);
+  const manualReorderStopsUseCase = new ManualReorderStopsUseCase(routingService, calculateFinalRoutesUseCase);
+  const approveDistributionUseCase = new ApproveDistributionUseCase(distributionRepo);
+
   return {
     buyerRepo,
     driverRepo,
     settingsRepo,
     authRepo,
+    distributionRepo,
     routingService,
     googleRoutingService,
     mockRoutingAdapter,
@@ -166,7 +216,25 @@ export function createProductionContainer(): AppContainer {
     calculateRouteMetricsUseCase,
 
     optimizeDistributionUseCase,
-    reassignStopUseCase
+    reassignStopUseCase,
+
+    calculateFinalRoutesUseCase,
+    manualReassignStopUseCase,
+    manualReorderStopsUseCase,
+    approveDistributionUseCase,
+
+    // Stage 7: Reporting, History, Export & Audit
+    historyRepo,
+    auditRepo,
+    getDistributionHistoryUseCase: new GetDistributionHistoryUseCase(historyRepo),
+    getDistributionDetailsUseCase: new GetDistributionDetailsUseCase(historyRepo, auditRepo),
+    getDriverPerformanceUseCase: new GetDriverPerformanceUseCase(historyRepo),
+    getOperationalReportsUseCase: new GetOperationalReportsUseCase(historyRepo),
+    compareDistributionsUseCase: new CompareDistributionsUseCase(historyRepo),
+    exportDistributionToExcelUseCase: new ExportDistributionToExcelUseCase(auditRepo),
+    exportDistributionToPdfUseCase: new ExportDistributionToPdfUseCase(auditRepo),
+    getAuditHistoryUseCase: new GetAuditHistoryUseCase(auditRepo),
+    logAuditEventUseCase: new LogAuditEventUseCase(auditRepo)
   };
 }
 

@@ -6,6 +6,11 @@ export class RouteSequenceOptimizer {
   /**
    * Optimizes the visitation order of stops for a single driver using road network distance matrix.
    * Employs deterministic Nearest-Neighbor construction followed by 2-Opt local search.
+   *
+   * Architectural Specification:
+   * Stop sequencing is optimized strictly by Road Network Distance (`distanceMeters`).
+   * Driving duration (`durationSeconds`) is computed as an operational byproduct of the selected road sequence
+   * and does not participate in the optimization objective function.
    */
   public static optimizeSequence(
     stops: readonly DeliveryStop[],

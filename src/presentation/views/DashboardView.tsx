@@ -10,7 +10,10 @@ import {
   ArrowUpRight,
   FileSpreadsheet,
   Upload,
-  Route
+  Route,
+  ClipboardCheck,
+  History as HistoryIcon,
+  BarChart3
 } from 'lucide-react';
 import { Messages } from '../../localization/messages';
 import { useBuyerStore } from '../../state/buyerStore';
@@ -75,6 +78,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ messages, onNaviga
             >
               <Sparkles className="h-4 w-4 text-purple-200" />
               <span>{messages.navigation.optimization}</span>
+            </button>
+            <button
+              id="dash-distribution-cta-btn"
+              onClick={() => onNavigate('distribution')}
+              className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-950/40 transition flex items-center gap-2"
+            >
+              <ClipboardCheck className="h-4 w-4 text-emerald-200" />
+              <span>{messages.navigation.distribution}</span>
+            </button>
+            <button
+              id="dash-history-cta-btn"
+              onClick={() => onNavigate('history')}
+              className="px-4 py-2.5 bg-blue-700/80 hover:bg-blue-600 text-white text-xs font-bold rounded-xl border border-blue-500/40 shadow-md transition flex items-center gap-2"
+            >
+              <HistoryIcon className="h-4 w-4 text-blue-200" />
+              <span>{messages.navigation.history}</span>
+            </button>
+            <button
+              id="dash-reports-cta-btn"
+              onClick={() => onNavigate('reports')}
+              className="px-4 py-2.5 bg-indigo-700 hover:bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2"
+            >
+              <BarChart3 className="h-4 w-4 text-indigo-200" />
+              <span>{messages.navigation.reports}</span>
             </button>
             <button
               id="dash-buyers-cta-btn"

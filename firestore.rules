@@ -42,6 +42,30 @@ service cloud.firestore {
         data.depotLongitude is number && data.depotLongitude >= -180.0 && data.depotLongitude <= 180.0;
     }
 
+    // Approved Distribution validation helper (Stage 6.1 Schema Hardening)
+    function isValidApprovedDistribution(data) {
+      return data.keys().hasAll([
+        'distributionId', 'createdAt', 'approvedAt', 'depot',
+        'drivers', 'routes', 'stops', 'unassigned', 'metrics',
+        'optimizationScore', 'warnings', 'revision'
+      ]) &&
+        data.distributionId is string && data.distributionId.size() > 0 && data.distributionId.size() <= 128 &&
+        data.createdAt is string && data.createdAt.size() > 0 &&
+        data.approvedAt is string && data.approvedAt.size() > 0 &&
+        data.revision is int && data.revision >= 1 &&
+        data.routes is list &&
+        data.stops is list &&
+        data.unassigned is list &&
+        data.drivers is list &&
+        data.metrics is map &&
+        data.metrics.finalDistanceMeters is number && data.metrics.finalDistanceMeters >= 0 &&
+        data.metrics.totalDurationSeconds is number && data.metrics.totalDurationSeconds >= 0 &&
+        data.optimizationScore is number &&
+        data.depot is map &&
+        data.depot.latitude is number && data.depot.latitude >= -90.0 && data.depot.latitude <= 90.0 &&
+        data.depot.longitude is number && data.depot.longitude >= -180.0 && data.depot.longitude <= 180.0;
+    }
+
     // 1. Buyers Collection
     match /buyers/{buyerCode} {
       allow read: if isSignedIn();
@@ -68,6 +92,53 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create, update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
       allow delete: if false;
+    }
+
+    // 5. Approved Distributions Collection (Stage 6.1: Strictly Append-Only Immutable Snapshots with Schema Validation)
+    match /distributions/{distributionId} {
+      allow read: if isSignedIn();
+      // Server-Side Cloud Function (Admin SDK) bypasses rules.
+      // If direct client creation is permitted, it must strictly satisfy the complete snapshot schema:
+      allow create: if isSignedIn() &&
+                    isValidId(distributionId) &&
+                    request.resource.data.distributionId == distributionId &&
+                    isValidApprovedDistribution(request.resource.data);
+      allow update: if false; // STRICT IMMUTABILITY: once created, snapshots cannot be modified!
+      allow delete: if false; // STRICT IMMUTABILITY: approved snapshots cannot be deleted!
+    }
+
+    // 6. Atomic Sequence / Revision Counters (Stage 6.1: Server-Authoritative Backend-Owned)
+    match /counters/{counterId} {
+      // Counter is owned 100% by Backend / Cloud Functions (Firebase Admin SDK).
+      // Direct client read and write are completely forbidden to guarantee atomic monotonic sequence integrity.
+      allow read: if false;
+      allow write: if false;
+    }
+
+    // Audit Event validation helper (Stage 7 - Zero-Trust Audit Integrity)
+    // Server-Authoritative events like DISTRIBUTION_APPROVED are created exclusively via Cloud Function (Admin SDK).
+    // Client is strictly restricted to logging genuine client-originated interaction events.
+    function isValidAuditEvent(data) {
+      return data.keys().hasAll(['eventId', 'eventType', 'userId', 'createdAt']) &&
+        data.eventId is string && data.eventId.size() > 0 &&
+        data.eventType in ['DISTRIBUTION_VIEWED', 'DISTRIBUTION_EXPORTED_EXCEL', 'DISTRIBUTION_EXPORTED_PDF', 'DISTRIBUTION_COMPARED'] &&
+        data.userId is string && data.userId == request.auth.uid &&
+        data.createdAt is string && data.createdAt.size() > 0 &&
+        (!('userEmail' in data) || data.userEmail is string || data.userEmail == null) &&
+        (!('distributionId' in data) || data.distributionId is string) &&
+        (!('revision' in data) || (data.revision is number && data.revision >= 1));
+    }
+
+    // 7. Audit Events Collection (Stage 7: Append-Only Immutable Audit Trail)
+    match /auditEvents/{eventId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() &&
+                    isValidId(eventId) &&
+                    request.resource.data.eventId == eventId &&
+                    request.resource.data.userId == request.auth.uid &&
+                    isValidAuditEvent(request.resource.data);
+      allow update: if false; // STRICT IMMUTABILITY: audit logs cannot be edited!
+      allow delete: if false; // STRICT IMMUTABILITY: audit logs cannot be deleted!
     }
   }
 }

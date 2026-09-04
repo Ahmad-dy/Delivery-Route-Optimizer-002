@@ -24,7 +24,22 @@ interface DriverBucket {
 
 export class OptimizationEngine implements IOptimizationService {
   /**
-   * Main entry point for Stage 5 Mathematical Optimization and Driver Assignment.
+   * Main entry point for Stage 5 Vehicle Routing Optimization and Driver Assignment.
+   *
+   * Architectural Specification:
+   * 1. Metaheuristic Paradigm:
+   *    The engine employs a deterministic multi-stage Vehicle Routing Metaheuristic:
+   *    - Construction Heuristic: Best-Insertion minimizing road insertion distance subject to hard 110% capacity.
+   *    - Objective Function: Multi-objective composite scoring (70% Distance + 30% Relative Capacity Load Balance).
+   *    - Local Search: Inter-route neighborhood exploration (Move and Swap) with intra-route 2-Opt edge exchanges.
+   *    This guarantees high-quality, operationally feasible local optima in real time without simulating an
+   *    NP-hard unconstrained mathematical global solver.
+   *
+   * 2. Hard Operational Invariants:
+   *    - Active Drivers Only (Inactive drivers receive 0 stops, 0 kg, 0 meters)
+   *    - 110% Maximum Capacity Buffer (totalWeightKg <= maximumLoadKg * 1.10)
+   *    - Atomicity: Delivery Lists and Buyer Stops are never split across drivers
+   *    - Closed Depot Loops: DEPOT -> Stops -> DEPOT
    */
   public async optimize(request: OptimizationRequest): Promise<DistributionResult> {
     const startTime = performance.now();
@@ -149,6 +164,10 @@ export class OptimizationEngine implements IOptimizationService {
       }
     }
 
+    // Architectural Note:
+    // `referenceDistanceMeters` is the deterministic initial-solution baseline used to normalize candidate
+    // distances during this optimization run. This establishes an empirical baseline representing the greedy
+    // construction quality, against which all subsequent local-search neighborhood moves and swaps are measured.
     const referenceDistance = Math.max(totalInitialDistance, 10000); // stable baseline reference
 
     const initialEvaluation = OptimizationEvaluationService.evaluateSolution({
@@ -508,13 +527,16 @@ export class OptimizationEngine implements IOptimizationService {
             marginalDist = bestInsertionCost;
           }
 
-          // Penalize over-utilizing a single driver during initial greedy construction to encourage natural balance
-          const nominalLoad = bucket.driver.maximumLoadKg;
-          const utilRatio = proposedWeight / nominalLoad;
-          const compositeCost = marginalDist * (1.0 + 0.3 * utilRatio);
+          // Construction Heuristic: pure best-insertion road distance under hard 110% capacity constraint.
+          // Objective evaluation (70% Distance + 30% Load Balance) is strictly decoupled and applied
+          // during the objective evaluation and local search acceptance phases.
+          const insertionCost = marginalDist;
 
-          if (compositeCost < minMarginalCost) {
-            minMarginalCost = compositeCost;
+          if (
+            insertionCost < minMarginalCost ||
+            (insertionCost === minMarginalCost && proposedWeight < (buckets[bestBucketIdx]?.totalWeightKg ?? Infinity))
+          ) {
+            minMarginalCost = insertionCost;
             bestBucketIdx = i;
           }
         }

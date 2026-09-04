@@ -17,7 +17,8 @@ import {
   FileSpreadsheet,
   Route as RouteIcon,
   ChevronDown,
-  UserCheck
+  UserCheck,
+  ClipboardCheck
 } from 'lucide-react';
 import { Messages } from '../../localization/messages';
 import { useOperationStore } from '../../state/operationStore';
@@ -31,12 +32,14 @@ interface OptimizationViewProps {
   messages: Messages;
   onNavigateToImport: () => void;
   onNavigateToRouting: () => void;
+  onNavigateToDistribution?: () => void;
 }
 
 export const OptimizationView: React.FC<OptimizationViewProps> = ({
   messages,
   onNavigateToImport,
-  onNavigateToRouting
+  onNavigateToRouting,
+  onNavigateToDistribution
 }) => {
   const {
     confirmedSession,
@@ -350,6 +353,29 @@ export const OptimizationView: React.FC<OptimizationViewProps> = ({
                   </div>
                   <div className="text-[11px] text-slate-400">معيار العدالة والتوازن بين السائقين</div>
                 </div>
+              </div>
+
+              {/* Stage 6 Distribution Workspace Callout Banner */}
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
+                <div>
+                  <h4 className="text-sm font-bold flex items-center gap-2">
+                    <ClipboardCheck className="h-5 w-5" />
+                    <span>مساحة عمل توزيع المسارات والاعتماد النهائي (Stage 6)</span>
+                  </h4>
+                  <p className="text-xs text-blue-100 mt-0.5">
+                    يمكنك الآن الانتقال إلى مساحة العمل لتدقيق المسارات الفعلية، التعديل اليدوي، واعتماد التوزيع النهائي وحفظه.
+                  </p>
+                </div>
+                {onNavigateToDistribution && (
+                  <button
+                    id="goto-stage6-btn"
+                    onClick={onNavigateToDistribution}
+                    className="px-4 py-2 rounded-xl bg-white hover:bg-blue-50 text-blue-700 text-xs font-bold shadow-sm transition flex items-center gap-2 flex-shrink-0"
+                  >
+                    <span>فتح مساحة العمل (Stage 6)</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                )}
               </div>
 
               {/* Unassigned Warning Notice if Any */}

@@ -81,20 +81,25 @@ $$f_{dist} = \sum_{d_j \in K_{used}} \text{RouteDistance}(d_j) = \sum_{d_j \in K
 - **Global Evaluation**: Stop assignment and route formation evaluate the holistic impact on total fleet distance $\sum D$.
 - **Duration as Information Metric**: Route duration ($T$) is calculated via `IRoutingService` for driver shift planning and manifest reporting, but is strictly an informational telemetry metric and is not part of the 70/30 optimization cost function.
 
-### 4.2. Objective 2: Fleet Load Balance / Variance ($f_{load}$)
-Load balancing evaluates the fairness of vehicle utilization based on nominal capacity ($C_{nom, j}$):
+### 4.2. Objective 2: Fleet Load Balance / Disparity ($f_{load}$)
+Load balancing evaluates the equity of vehicle workload utilization based on nominal capacity ($C_{nom, j}$):
 $$U_j = \frac{W_j}{C_{nom, j}}$$
-Where $U_j$ is the utilization ratio of driver $d_j$. The load imbalance metric is the standard deviation among participating active drivers:
-$$\bar{U} = \frac{1}{|K_{used}|} \sum_{j \in K_{used}} U_j$$
-$$f_{load} = \sqrt{\frac{1}{|K_{used}|} \sum_{j \in K_{used}} (U_j - \bar{U})^2}$$
+Where $U_j$ is the utilization ratio of driver $d_j$. The load disparity metric is the peak utilization difference across utilized drivers:
+$$f_{load} = \text{loadDisparity} = \max_{j \in K_{used}}(U_j) - \min_{j \in K_{used}}(U_j)$$
+*(If $|K_{used}| \le 1$, $f_{load} = 0$)*.
 
-*Note*: Load balancing is measured against **Nominal Capacity (100%)**, ensuring the optimizer targets balanced standard utilization without relying on the 10% buffer during normal conditions.
+*Note*: Load balancing is measured against **Nominal Capacity (100%)**, ensuring the optimizer targets balanced standard utilization.
 
 ### 4.3. Score Normalization & Combined Fitness Function
-Because distance (meters, typically $10^4 - 10^5$) and load variance ($0.0 - 1.0$) operate on different scales, they are normalized into unitless $[0, 1]$ indices:
+Because distance (meters) and load disparity operate on different scales, they are normalized into bounded, unitless $[0, 1]$ indices:
 
-$$\tilde{f}_{dist} = \frac{f_{dist} - f_{dist}^{min}}{f_{dist}^{max} - f_{dist}^{min} + \epsilon}$$
-$$\tilde{f}_{load} = \frac{f_{load} - f_{load}^{min}}{f_{load}^{max} - f_{load}^{min} + \epsilon}$$
+- **Normalized Road Distance**:
+  $$\tilde{f}_{dist} = \frac{\text{totalDistanceMeters}}{\text{referenceDistanceMeters}}$$
+  Where $\text{referenceDistanceMeters}$ is the deterministic baseline calculated from the initial heuristic solution.
+
+- **Normalized Load Balance**:
+  Since the operational capacity ceiling is 110% ($1.10$), the maximum theoretical disparity between an active vehicle at full buffer ($1.10$) and an empty vehicle ($0.0$) is $1.10$. Dividing by $1.10$ and clamping maps the disparity strictly to the $[0, 1]$ interval:
+  $$\tilde{f}_{load} = \min\left(\max\left(\frac{f_{load}}{1.10}, 0\right), 1.0\right)$$
 
 The combined multi-objective cost function to minimize is:
 $$\text{Cost} = w_{dist} \cdot \tilde{f}_{dist} + w_{load} \cdot \tilde{f}_{load}$$
@@ -110,8 +115,8 @@ For every optimization execution, the engine measures and records formal quality
 | :--- | :--- | :--- |
 | **Initial Solution Distance** | `initialDistanceMeters` | Total road distance of initial heuristic solution before 2-Opt/metaheuristic refinement. |
 | **Final Solution Distance** | `finalDistanceMeters` | Final optimized road distance across all assigned routes. |
-| **Initial Load Imbalance** | `initialLoadVariance` | Standard deviation of driver utilization before inter-route swaps. |
-| **Final Load Imbalance** | `finalLoadVariance` | Standard deviation of driver utilization after 70/30 multi-objective optimization. |
+| **Initial Load Imbalance** | `initialLoadVariance` | Peak load disparity ($\max(U) - \min(U)$) among drivers before inter-route swaps. |
+| **Final Load Imbalance** | `finalLoadVariance` | Peak load disparity ($\max(U) - \min(U)$) among drivers after 70/30 multi-objective optimization. |
 | **Combined Score** | `finalOptimizationScore` | Normalized weighted fitness score ($0.00 - 1.00$). |
 | **Total Estimated Duration** | `totalDurationSeconds` | Aggregate road travel time across all routes (informational metric). |
 | **Optimization Iterations** | `iterationCount` | Total iterations executed during clustering and 2-Opt/local search phases. |

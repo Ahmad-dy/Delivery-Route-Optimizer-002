@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator, Auth } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator, Firestore } from 'firebase/firestore';
+import { getFunctions, connectFunctionsEmulator, Functions } from 'firebase/functions';
 import { getFirebaseConfig } from './firebaseConfig';
 
 const config = getFirebaseConfig();
@@ -21,6 +22,7 @@ if (getApps().length === 0) {
 
 export const auth: Auth = getAuth(app);
 export const db: Firestore = getFirestore(app);
+export const functions: Functions = getFunctions(app);
 
 // Connect emulators if enabled in environment
 if (config.useEmulator) {
@@ -30,6 +32,14 @@ if (config.useEmulator) {
 
     const [fsHost, fsPortStr] = config.firestoreEmulatorHost.split(':');
     connectFirestoreEmulator(db, fsHost, parseInt(fsPortStr || '8080', 10));
+
+    // Connect Functions emulator if available (default port 5001)
+    try {
+      connectFunctionsEmulator(functions, fsHost || 'localhost', 5001);
+    } catch {
+      // Ignore if functions emulator not active
+    }
+
     console.log(`[Firebase] Connected to local Emulators (Auth: ${config.authEmulatorHost}, Firestore: ${config.firestoreEmulatorHost})`);
   } catch (err) {
     console.warn('[Firebase] Emulator connection warning:', err);

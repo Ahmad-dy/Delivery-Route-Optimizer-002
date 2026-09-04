@@ -23,7 +23,12 @@ export enum ErrorCode {
   ROUTING_QUOTA_ERROR = 'ROUTING_QUOTA_ERROR',
   ROUTING_INVALID_REQUEST_ERROR = 'ROUTING_INVALID_REQUEST_ERROR',
   ROUTING_NO_ROUTE_ERROR = 'ROUTING_NO_ROUTE_ERROR',
-  DEPOT_LOCATION_INVALID_ERROR = 'DEPOT_LOCATION_INVALID_ERROR'
+  DEPOT_LOCATION_INVALID_ERROR = 'DEPOT_LOCATION_INVALID_ERROR',
+  PERMISSION_DENIED_ERROR = 'PERMISSION_DENIED_ERROR',
+  EXPORT_FAILED_ERROR = 'EXPORT_FAILED_ERROR',
+  REPORT_QUERY_FAILED_ERROR = 'REPORT_QUERY_FAILED_ERROR',
+  AUDIT_WRITE_FAILED_ERROR = 'AUDIT_WRITE_FAILED_ERROR',
+  INVALID_SNAPSHOT_ERROR = 'INVALID_SNAPSHOT_ERROR'
 }
 
 export abstract class AppError extends Error {
@@ -138,12 +143,12 @@ export class RepositoryError extends AppError {
 }
 
 export class NotFoundError extends AppError {
-  constructor(entityName: string, id: string) {
+  constructor(resource: string, identifier?: string | number, details?: Record<string, unknown>) {
     super(
       ErrorCode.NOT_FOUND_ERROR,
-      `${entityName} with identifier '${id}' was not found.`,
+      `Resource '${resource}'${identifier ? ` with identifier '${identifier}'` : ''} was not found.`,
       'errors.notFound',
-      { entityName, id }
+      { resource, identifier, ...details }
     );
   }
 }
@@ -195,6 +200,56 @@ export class DepotLocationInvalidError extends AppError {
       `Depot has missing or invalid GPS coordinates (${latitude}, ${longitude}).`,
       'errors.depotLocationInvalid',
       { latitude, longitude }
+    );
+  }
+}
+
+export class PermissionDeniedError extends AppError {
+  constructor(technicalMessage = 'Access denied: insufficient permissions to perform this operation.', details?: Record<string, unknown>) {
+    super(ErrorCode.PERMISSION_DENIED_ERROR, technicalMessage, 'errors.permissionDenied', details);
+  }
+}
+
+export class ExportFailedError extends AppError {
+  constructor(format: 'excel' | 'pdf', reason: string, details?: Record<string, unknown>) {
+    super(
+      ErrorCode.EXPORT_FAILED_ERROR,
+      `Failed to export distribution to ${format.toUpperCase()}: ${reason}`,
+      'errors.exportFailed',
+      { format, reason, ...details }
+    );
+  }
+}
+
+export class ReportQueryFailedError extends AppError {
+  constructor(reason: string, details?: Record<string, unknown>) {
+    super(
+      ErrorCode.REPORT_QUERY_FAILED_ERROR,
+      `Failed to execute report query: ${reason}`,
+      'errors.reportQueryFailed',
+      { reason, ...details }
+    );
+  }
+}
+
+export class AuditWriteFailedError extends AppError {
+  constructor(reason: string, details?: Record<string, unknown>) {
+    super(
+      ErrorCode.AUDIT_WRITE_FAILED_ERROR,
+      `Failed to record audit trail event: ${reason}`,
+      'errors.auditWriteFailed',
+      { reason, ...details }
+    );
+  }
+}
+
+export class InvalidSnapshotError extends AppError {
+  constructor(distributionId: string, reason: string, details?: Record<string, unknown>) {
+    super(
+      ErrorCode.INVALID_SNAPSHOT_ERROR,
+      `Distribution snapshot '${distributionId}' is invalid or corrupted: ${reason}`,
+      'errors.invalidSnapshot',
+      { distributionId, reason, ...details }
     );
   }
 }

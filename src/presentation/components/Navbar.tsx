@@ -10,12 +10,25 @@ import {
   LogOut,
   Globe,
   ShieldCheck,
-  PackageCheck
+  PackageCheck,
+  ClipboardCheck,
+  History as HistoryIcon,
+  BarChart3
 } from 'lucide-react';
 import { Messages } from '../../localization/messages';
 import { AuthUser } from '../../core/application/ports/AuthRepository';
 
-export type NavTab = 'dashboard' | 'import' | 'routing' | 'optimization' | 'buyers' | 'drivers' | 'settings';
+export type NavTab =
+  | 'dashboard'
+  | 'import'
+  | 'routing'
+  | 'optimization'
+  | 'distribution'
+  | 'history'
+  | 'reports'
+  | 'buyers'
+  | 'drivers'
+  | 'settings';
 
 interface NavbarProps {
   activeTab: NavTab;
@@ -41,6 +54,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'import' as NavTab, label: messages.navigation.import, icon: FileSpreadsheet },
     { id: 'routing' as NavTab, label: messages.navigation.routing, icon: Route },
     { id: 'optimization' as NavTab, label: messages.navigation.optimization, icon: Sparkles },
+    { id: 'distribution' as NavTab, label: messages.navigation.distribution, icon: ClipboardCheck },
+    { id: 'history' as NavTab, label: messages.navigation.history, icon: HistoryIcon },
+    { id: 'reports' as NavTab, label: messages.navigation.reports, icon: BarChart3 },
     { id: 'buyers' as NavTab, label: messages.navigation.buyers, icon: Users },
     { id: 'drivers' as NavTab, label: messages.navigation.drivers, icon: Truck },
     { id: 'settings' as NavTab, label: messages.navigation.settings, icon: SettingsIcon }
